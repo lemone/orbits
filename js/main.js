@@ -11,24 +11,20 @@ jQuery(function() {
 	renderer.shadowMapEnabled = true;
 
 	// Set a bunch of sphere sizes to pick from
-	var sphereGeometries = [
-		new THREE.SphereGeometry(1, 32, 32),
-		new THREE.SphereGeometry(2, 32, 32),
-		new THREE.SphereGeometry(3, 32, 32),
-		new THREE.SphereGeometry(4, 32, 32),
-		new THREE.SphereGeometry(5, 32, 32),
-		new THREE.SphereGeometry(6, 32, 32)
-	];
+	var sphereSizes = [1, 2, 3, 4];
 
-	// The surfaces
-	var sphereMaterials = [
-		new THREE.MeshLambertMaterial({ color: 0x257E78 }),
-		new THREE.MeshLambertMaterial({ color: 0x40B8AF }),
-		new THREE.MeshLambertMaterial({ color: 0x6C2D58 }),
-		new THREE.MeshLambertMaterial({ color: 0xB2577A }),
-		new THREE.MeshLambertMaterial({ color: 0xF6B17F }),
-		new THREE.MeshLambertMaterial({ color: 0xFFFFFF })
-	];
+	// Create an array of geometries of each size
+	var sphereGeometries = _.map(sphereSizes, function(size) {
+		return new THREE.SphereGeometry(size, 32, 32);
+	});
+
+	// The surface colors
+	var sphereColors = [0x257E78, 0x40B8AF, 0x6C2D58, 0xB2577A, 0xF6B17F, 0xFFFFFF];
+
+	// Create an array of surface meshes of each color
+	var sphereMaterials = _.map(sphereColors, function(color) {
+		return new THREE.MeshLambertMaterial({ color: color });
+	});
 
 	var numberOfSpheres = 37;
 	var spheres = [];
@@ -48,9 +44,16 @@ jQuery(function() {
 		sphere.stepIncrement = Math.random() / 20.0;
 
 		sphere.orbitOffset = {
-			x: Math.floor(Math.random() * 20) + 10,
-			y: Math.floor(Math.random() * 20) + 10,
-			z: Math.floor(Math.random() * 20)
+			x: Math.floor(Math.random() * 10) + 10,
+			y: Math.floor(Math.random() * 10) + 10,
+			z: Math.floor(Math.random() * 10)
+		}
+
+		// Orbit direction. 1 will be clockwise, -1 counterclockwise
+		sphere.orbitDirection = {
+			x: Math.round(Math.random()) * 2 - 1,
+			y: Math.round(Math.random()) * 2 - 1,
+			z: Math.round(Math.random()) * 2 - 1
 		}
 
 		// Add sphere to the spheres array
@@ -59,9 +62,7 @@ jQuery(function() {
 		scene.add(sphere);
 	}
 
-	camera.position.x = -50;
-	camera.position.y = 60;
-	camera.position.z = 50;
+	camera.position.set(-50, 60, 50);
 	camera.lookAt(scene.position);
 
 	// Add some ambient light
@@ -89,11 +90,9 @@ jQuery(function() {
 	  		z: 0
 	  	};
 
-	  	if (typeof center.x !== 'undefined') {
-				sphere.position.x = center.x + (sphere.orbitOffset.x * (Math.cos(sphere.step)));
-				sphere.position.y = center.y + (sphere.orbitOffset.y * (Math.sin(sphere.step)));
-				sphere.position.z = center.z + (sphere.orbitOffset.z * (Math.sin(sphere.step))) * 5;
-	  	}
+			sphere.position.x = center.x + (sphere.orbitOffset.x * (Math.cos(sphere.step)) * sphere.orbitDirection.x);
+			sphere.position.y = center.y + (sphere.orbitOffset.y * (Math.sin(sphere.step)) * sphere.orbitDirection.y);
+			sphere.position.z = center.z + (sphere.orbitOffset.z * (Math.sin(sphere.step)) * sphere.orbitDirection.z) * 5;
 
 	  	// Pick another random sphere to orbit
 	  	center = spheres[Math.floor(Math.random() * spheres.length)].position;
